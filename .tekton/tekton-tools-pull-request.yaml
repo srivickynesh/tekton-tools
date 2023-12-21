@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
   annotations:
-    build.appstudio.openshift.io/repo: https://github.com/redhat-appstudio/tekton-tools?rev={{revision}}
+    build.appstudio.openshift.io/repo: https://github.com/srivickynesh/tekton-tools?rev={{revision}}
     build.appstudio.redhat.com/commit_sha: '{{revision}}'
     build.appstudio.redhat.com/pull_request_number: '{{pull_request_number}}'
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
@@ -14,13 +14,19 @@ metadata:
     appstudio.openshift.io/component: tekton-tools
     pipelines.appstudio.openshift.io/type: build
   name: tekton-tools-on-pull-request
-  namespace: rhtap-o11y-tenant
+  namespace: vigneshsri-tenant
 spec:
   params:
   - name: URL
     value: '{{source_url}}'
   - name: REVISION
     value: '{{revision}}'
+  - name: IMAGE
+    value: quay.io/redhat-user-workloads/rhtap-o11y-tenant/tools/tools:72beb048597a0d19f64a3ef0433e0b6d2098164c
+  - name: INPUT 
+    value: quay.io/abiton1/ansible-automation-platform-2-next-eda-controller-rhel8:latest
+  - name: FAIL_UNSIGNED
+    value: false
   - name: SNAPSHOT
     value: |
       {
@@ -53,13 +59,15 @@ spec:
     value: test_plugin_accessible
   - name: IQE_CJI_TIMEOUT
     value: "30m"
-  pipelineSpec:
-    tasks:
-    - name: sample-task
-      taskSpec:
-        steps:
-        - name: sample
-          image: registry.access.redhat.com/ubi9:latest
-          script: |
-            #!/bin/bash
-            echo "Success!"
+  pipelineRef:
+      resolver: git
+      params:
+      - name: url
+        value: '{{source_url}}'
+      - name: revision
+        value: '{{revision}}'
+      - name: pathInRepo
+        value: pipelines/verify-signed-rpms-pipeline.yaml
+  workspaces:
+    - name: verify-rpms-workspace
+      emptyDir: {}
