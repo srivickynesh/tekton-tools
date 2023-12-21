@@ -1,0 +1,32 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: output-verification-for-signed-rpms
+spec:
+  params:
+    - name: IMAGE
+      type: string
+      description: The image to use for this task
+    - name: verificationData
+      type: string
+  steps:
+    - name: output-verification-for-signed-rpms
+      image: "$(params.IMAGE)"
+      script: |
+        #!/bin/sh
+        set -e
+
+        output="$(params.verificationData)"
+
+        if echo "$output" | grep -q "Found unsigned RPMs:"; then
+            echo "Error: Unsigned RPMs found."
+            echo "$output" | awk '/Found unsigned RPMs:/{flag=1;next}/^$/{flag=0}flag'
+            exit 1
+        else
+            echo "No unsigned RPMs found."
+            exit 0
+        fi
+  workspaces:
+    - description: The folder where we write the results
+      mountPath: /results
+      name: results-temp
