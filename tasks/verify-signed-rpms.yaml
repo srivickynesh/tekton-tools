@@ -16,15 +16,6 @@ spec:
       type: string
       description: "[true | false] If true fail if unsigned RPMs were found"
       default: ""
-    - name: WORKDIR
-      type: string
-      default: /tmp
-      description: |
-        Directory that will be used for storing temporary
-        files produced by this task.
-  volumes:
-    - name: workdir
-      emptyDir: {}
   steps:
     - name: verify-signed-rpms
       image: "$(params.IMAGE)"
@@ -39,3 +30,7 @@ spec:
           --input "$(params.INPUT)" \
           --fail-unsigned "$(params.FAIL_UNSIGNED)" \
           --workdir "$(params.WORKDIR)"
+  workspaces:
+    - description: The folder where we write the results
+      mountPath: /results
+      name: results-temp
