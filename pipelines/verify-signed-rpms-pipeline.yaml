@@ -4,6 +4,12 @@ metadata:
   name: verify-signed-rpms-pipeline
 spec:
   params:
+    - name: URL
+      type: string
+      description: "URL of the Git repository to use for fetching the tasks"
+    - name: REVISION
+      type: string
+      description: "Git commit revision to use for fetching the tasks"
     - name: IMAGE
       type: string
       description: "The image to use for this task"
@@ -15,12 +21,6 @@ spec:
       type: string
       description: "[true | false] If true fail if unsigned RPMs were found"
       default: ""
-    - name: URL
-      type: string
-      description: "URL of the Git repository to use for fetching the tasks"
-    - name: REVISION
-      type: string
-      description: "Git commit revision to use for fetching the tasks"
   tasks:
     - name: verify-signed-rpms
       params:
@@ -30,8 +30,6 @@ spec:
           value: $(params.INPUT)
         - name: FAIL_UNSIGNED
           value: $(params.FAIL_UNSIGNED)
-        - name: WORKDIR
-          value: $(params.WORKDIR)
       taskRef:
         resolver: git
         params:
@@ -41,6 +39,24 @@ spec:
             value: $(params.REVISION)
           - name: pathInRepo
             value: tasks/verify-signed-rpms.yaml
+      workspaces:
+        - name: results-temp
+          workspace: verify-rpms-workspace
+    - name: output-verification-for-signed-rpms
+      params:
+        - name: IMAGE
+          value: $(params.IMAGE)
+        - name: verificationData
+          value: "$(tasks.verify-signed-rpms.results.verification-output)"
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: $(params.URL)
+          - name: revision
+            value: $(params.REVISION)
+          - name: pathInRepo
+            value: tasks/verify-signed-rpm-output.yaml
       workspaces:
         - name: results-temp
           workspace: verify-rpms-workspace

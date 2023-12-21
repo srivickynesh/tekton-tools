@@ -21,6 +21,12 @@ spec:
     value: '{{source_url}}'
   - name: REVISION
     value: '{{revision}}'
+  - name: IMAGE
+    value: quay.io/redhat-user-workloads/rhtap-o11y-tenant/tools/tools:72beb048597a0d19f64a3ef0433e0b6d2098164c
+  - name: INPUT 
+    value: quay.io/abiton1/ansible-automation-platform-2-next-eda-controller-rhel8:latest
+  - name: FAIL_UNSIGNED
+    value: false
   - name: SNAPSHOT
     value: |
       {
@@ -54,20 +60,14 @@ spec:
   - name: IQE_CJI_TIMEOUT
     value: "30m"
   pipelineRef:
-    name: verify-signed-rpms-pipeline
-  params:
-    - name: URL
-      value: https://github.com/srivickynesh/tekton-tools.git
-    - name: REVISION
-      value: main
-    - name: pathInRepo
-      value: pipelines/verify-signed-rpms-pipeline.yaml
-    - name: IMAGE
-      value: quay.io/redhat-user-workloads/rhtap-o11y-tenant/tools/tools:72beb048597a0d19f64a3ef0433e0b6d2098164c
-    - name: INPUT 
-      value: quay.io/abiton1/ansible-automation-platform-2-next-eda-controller-rhel8:latest
-    - name: FAIL_UNSIGNED
-      value: false
+      resolver: git
+      params:
+      - name: url
+        value: '{{source_url}}'
+      - name: revision
+        value: '{{revision}}'
+      - name: pathInRepo
+        value: pipelines/verify-signed-rpms-pipeline.yaml
   workspaces:
     - name: verify-rpms-workspace
       emptyDir: {}
