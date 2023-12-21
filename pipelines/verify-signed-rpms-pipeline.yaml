@@ -1,0 +1,48 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: verify-signed-rpms-pipeline
+spec:
+  params:
+    - name: IMAGE
+      type: string
+      description: "The image to use for this task"
+      default: ""
+    - name: INPUT
+      type: string
+      description: "AppStudio snapshot or a reference to a container image"
+    - name: FAIL_UNSIGNED
+      type: string
+      description: "[true | false] If true fail if unsigned RPMs were found"
+      default: ""
+    - name: URL
+      type: string
+      description: "URL of the Git repository to use for fetching the tasks"
+    - name: REVISION
+      type: string
+      description: "Git commit revision to use for fetching the tasks"
+  tasks:
+    - name: verify-signed-rpms
+      params:
+        - name: IMAGE
+          value: $(params.IMAGE)
+        - name: INPUT
+          value: $(params.INPUT)
+        - name: FAIL_UNSIGNED
+          value: $(params.FAIL_UNSIGNED)
+        - name: WORKDIR
+          value: $(params.WORKDIR)
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: $(params.URL)
+          - name: revision
+            value: $(params.REVISION)
+          - name: pathInRepo
+            value: tasks/verify-signed-rpms.yaml
+      workspaces:
+        - name: results-temp
+          workspace: verify-rpms-workspace
+  workspaces:
+    - name: verify-rpms-workspace
